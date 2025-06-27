@@ -10,7 +10,7 @@ import AbstinenceTimer from './abstinence-timer';
 import HistoryLog from './history-log';
 import MotivationalMessage from './motivational-message';
 import DashboardSkeleton from './dashboard-skeleton';
-import { Play, StopCircle, Check, ChevronsUpDown } from 'lucide-react';
+import { Play, StopCircle, Check, ChevronsUpDown, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,7 @@ const IS_RUNNING_KEY = 'triumph-tracker-is-running';
 const START_TIME_KEY = 'triumph-tracker-start-time';
 const HISTORY_KEY = 'triumph-tracker-history-v2';
 const SETBACK_TYPES_KEY = 'triumph-tracker-setback-types';
+const DEFAULT_SETBACK_TYPES = ['Stress', 'Tiredness', 'Social Pressure'];
 
 export default function TriumphTrackerClient() {
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
@@ -59,7 +60,7 @@ export default function TriumphTrackerClient() {
   const [reason, setReason] = useState('');
   const { toast } = useToast();
 
-  const [setbackTypes, setSetbackTypes] = useState<string[]>(['Stress', 'Tiredness', 'Social Pressure']);
+  const [setbackTypes, setSetbackTypes] = useState<string[]>(DEFAULT_SETBACK_TYPES);
   const [selectedSetbackType, setSelectedSetbackType] = useState<string>('');
   
   const [isComboOpen, setIsComboOpen] = useState(false);
@@ -83,7 +84,7 @@ export default function TriumphTrackerClient() {
       setIsTimerRunning(false);
       setCurrentStreakStartTime(null);
       setHistory([]);
-      setSetbackTypes(['Stress', 'Tiredness', 'Social Pressure']);
+      setSetbackTypes(DEFAULT_SETBACK_TYPES);
     } finally {
       setIsLoaded(true);
     }
@@ -204,6 +205,55 @@ export default function TriumphTrackerClient() {
     fetchMotivationalMessage();
   };
   
+  const handleDeleteSetbackType = (typeToDelete: string) => {
+    if (DEFAULT_SETBACK_TYPES.includes(typeToDelete)) {
+      toast({
+        variant: 'destructive',
+        title: 'Cannot Delete Default Type',
+        description: `"${typeToDelete}" is a default type and cannot be deleted.`,
+      });
+      return;
+    }
+
+    const newTypes = setbackTypes.filter((type) => type !== typeToDelete);
+    setSetbackTypes(newTypes);
+    localStorage.setItem(SETBACK_TYPES_KEY, JSON.stringify(newTypes));
+
+    if (selectedSetbackType === typeToDelete) {
+      setSelectedSetbackType('');
+    }
+
+    toast({
+      title: 'Type Deleted',
+      description: `The type "${typeToDelete}" has been removed.`,
+    });
+  };
+
+  const handleCreateOrSelectType = () => {
+    const newTypeValue = newTypeInput.trim();
+    if (!newTypeValue) return;
+
+    let typeToSelect = setbackTypes.find(
+      (t) => t.toLowerCase() === newTypeValue.toLowerCase()
+    );
+
+    if (!typeToSelect) {
+      typeToSelect = newTypeValue;
+      const newTypes = [...setbackTypes, typeToSelect];
+      setSetbackTypes(newTypes);
+      localStorage.setItem(SETBACK_TYPES_KEY, JSON.stringify(newTypes));
+      toast({
+        title: 'Type Added',
+        description: `Successfully created the "${typeToSelect}" type.`,
+      });
+    }
+
+    setSelectedSetbackType(typeToSelect);
+    setIsComboOpen(false);
+    setNewTypeInput('');
+  };
+
+
   const handleDeleteHistoryEntry = (id: number) => {
     const newHistory = history.filter((entry) => entry.id !== id);
     setHistory(newHistory);
@@ -217,13 +267,17 @@ export default function TriumphTrackerClient() {
   const handleClearAllHistory = () => {
     setHistory([]);
     localStorage.removeItem(HISTORY_KEY);
-    localStorage.removeItem(SETBACK_TYPES_KEY);
-    setSetbackTypes(['Stress', 'Tiredness', 'Social Pressure']);
+    // Keep custom types, but reset if they were also cleared
+    const savedTypes = localStorage.getItem(SETBACK_TYPES_KEY);
+    if (!savedTypes) {
+      setSetbackTypes(DEFAULT_SETBACK_TYPES);
+    }
     toast({
       title: 'History Cleared',
       description: 'All your streak history has been deleted.',
     });
   };
+
 
   if (!isLoaded) {
     return <DashboardSkeleton />;
@@ -292,17 +346,7 @@ export default function TriumphTrackerClient() {
                                   <CommandEmpty>
                                       {newTypeInput.trim() ? (
                                           <CommandItem
-                                              onSelect={() => {
-                                                  const newType = newTypeInput.trim();
-                                                  if (!setbackTypes.includes(newType)) {
-                                                      const newTypes = [...setbackTypes, newType];
-                                                      setSetbackTypes(newTypes);
-                                                      localStorage.setItem(SETBACK_TYPES_KEY, JSON.stringify(newTypes));
-                                                  }
-                                                  setSelectedSetbackType(newType);
-                                                  setIsComboOpen(false);
-                                                  setNewTypeInput('');
-                                              }}
+                                            onSelect={handleCreateOrSelectType}
                                           >
                                               Create "{newTypeInput}"
                                           </CommandItem>
@@ -312,24 +356,39 @@ export default function TriumphTrackerClient() {
                                   </CommandEmpty>
                                   <CommandGroup>
                                       {setbackTypes.map((type) => (
-                                          <CommandItem
-                                              key={type}
-                                              value={type}
-                                              onSelect={(currentValue) => {
-                                                  const originalType = setbackTypes.find(t => t.toLowerCase() === currentValue);
-                                                  setSelectedSetbackType(selectedSetbackType === originalType ? '' : originalType || '');
-                                                  setIsComboOpen(false);
-                                                  setNewTypeInput('');
+                                        <CommandItem
+                                          key={type}
+                                          value={type}
+                                          onSelect={() => {
+                                            setSelectedSetbackType(selectedSetbackType === type ? '' : type);
+                                            setIsComboOpen(false);
+                                            setNewTypeInput('');
+                                          }}
+                                          className="group/item flex items-center justify-between"
+                                        >
+                                          <div className="flex items-center">
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-4 w-4",
+                                                selectedSetbackType === type ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            <span>{type}</span>
+                                          </div>
+                                          {!DEFAULT_SETBACK_TYPES.includes(type) && (
+                                            <button
+                                              className="p-1 opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleDeleteSetbackType(type);
                                               }}
-                                          >
-                                              <Check
-                                                  className={cn(
-                                                      "mr-2 h-4 w-4",
-                                                      selectedSetbackType === type ? "opacity-100" : "opacity-0"
-                                                  )}
-                                              />
-                                              {type}
-                                          </CommandItem>
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                              <span className="sr-only">Delete type</span>
+                                            </button>
+                                          )}
+                                        </CommandItem>
                                       ))}
                                   </CommandGroup>
                               </CommandList>

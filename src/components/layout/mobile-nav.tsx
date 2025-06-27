@@ -15,6 +15,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Logo from './logo';
 import { ThemeToggle } from './theme-toggle';
+import InstallPWAButton from './install-pwa-button';
 
 const routes = [
   { href: '/', label: 'Dashboard' },
@@ -53,7 +54,8 @@ export default function MobileNav() {
             </MobileLink>
           ))}
         </div>
-        <div className="absolute bottom-4 left-6">
+        <div className="absolute bottom-4 left-6 flex items-center gap-2">
+          <InstallPWAButton />
           <ThemeToggle />
         </div>
       </SheetContent>

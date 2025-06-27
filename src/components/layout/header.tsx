@@ -2,6 +2,7 @@ import Logo from './logo';
 import MainNav from './main-nav';
 import MobileNav from './mobile-nav';
 import { ThemeToggle } from './theme-toggle';
+import InstallPWAButton from './install-pwa-button';
 
 export default function Header() {
   return (
@@ -10,6 +11,7 @@ export default function Header() {
         <Logo />
         <div className="flex items-center gap-2">
           <MainNav />
+          <InstallPWAButton />
           <ThemeToggle />
           <MobileNav />
         </div>
