@@ -25,9 +25,9 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format, formatDistanceStrict, getYear, getMonth } from 'date-fns';
-import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart } from 'recharts';
 import type { HistoryEntry } from '../dashboard/triumph-tracker-client';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, BarChart } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 
 const HISTORY_KEY = 'triumph-tracker-history-v2';
 
