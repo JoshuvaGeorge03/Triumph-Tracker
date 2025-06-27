@@ -10,7 +10,7 @@ import AbstinenceTimer from './abstinence-timer';
 import HistoryLog from './history-log';
 import MotivationalMessage from './motivational-message';
 import DashboardSkeleton from './dashboard-skeleton';
-import { Play, StopCircle } from 'lucide-react';
+import { Play, StopCircle, Check, ChevronsUpDown } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,12 +24,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 export interface HistoryEntry {
   id: number;
@@ -58,7 +61,9 @@ export default function TriumphTrackerClient() {
 
   const [setbackTypes, setSetbackTypes] = useState<string[]>(['Stress', 'Tiredness', 'Social Pressure']);
   const [selectedSetbackType, setSelectedSetbackType] = useState<string>('');
-  const [customSetbackType, setCustomSetbackType] = useState('');
+  
+  const [isComboOpen, setIsComboOpen] = useState(false);
+  const [newTypeInput, setNewTypeInput] = useState("");
 
   useEffect(() => {
     try {
@@ -148,27 +153,12 @@ export default function TriumphTrackerClient() {
     if (!open) {
       setReason('');
       setSelectedSetbackType('');
-      setCustomSetbackType('');
-    }
-  };
-
-  const handleTypeSelect = (value: string) => {
-    setSelectedSetbackType(value);
-    if (value) {
-      setCustomSetbackType('');
-    }
-  };
-
-  const handleCustomTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustomSetbackType(e.target.value);
-    if (e.target.value) {
-      setSelectedSetbackType('');
+      setNewTypeInput('');
     }
   };
 
   const handleRecordSetback = () => {
     if (!currentStreakStartTime) return;
-    const finalSetbackType = customSetbackType.trim() || selectedSetbackType;
 
     if (!reason.trim()) {
       toast({
@@ -178,11 +168,11 @@ export default function TriumphTrackerClient() {
       });
       return;
     }
-    if (!finalSetbackType) {
+    if (!selectedSetbackType) {
       toast({
         variant: 'destructive',
         title: 'Type Required',
-        description: 'Please select or enter a type for this setback.',
+        description: 'Please select or create a type for this setback.',
       });
       return;
     }
@@ -193,24 +183,14 @@ export default function TriumphTrackerClient() {
       startTime: currentStreakStartTime,
       endTime: now,
       reason: reason.trim(),
-      type: finalSetbackType,
+      type: selectedSetbackType,
     };
     const newHistory = [newHistoryEntry, ...history];
-
-    const updatedTypes = [...setbackTypes];
-    if (customSetbackType.trim() && !setbackTypes.includes(customSetbackType.trim())) {
-        updatedTypes.push(customSetbackType.trim());
-        setSetbackTypes(updatedTypes);
-        localStorage.setItem(SETBACK_TYPES_KEY, JSON.stringify(updatedTypes));
-    }
 
     setHistory(newHistory);
     setIsTimerRunning(false);
     setCurrentStreakStartTime(null);
-    setIsDialogOpen(false);
-    setReason('');
-    setSelectedSetbackType('');
-    setCustomSetbackType('');
+    handleDialogOpenChange(false)
 
     localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
     localStorage.setItem(IS_RUNNING_KEY, 'false');
@@ -278,35 +258,73 @@ export default function TriumphTrackerClient() {
                     <Label htmlFor="type" className="text-right">
                         Type
                     </Label>
-                    <Select
-                        onValueChange={handleTypeSelect}
-                        value={selectedSetbackType}
-                        disabled={!!customSetbackType}
-                    >
-                        <SelectTrigger className="col-span-3">
-                            <SelectValue placeholder="Select a type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {setbackTypes.map((type) => (
-                                <SelectItem key={type} value={type}>
-                                    {type}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                  </div>
-                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="custom-type" className="text-right">
-                        Other
-                    </Label>
-                    <Input
-                        id="custom-type"
-                        value={customSetbackType}
-                        onChange={handleCustomTypeChange}
-                        className="col-span-3"
-                        placeholder="Or add a new type"
-                        disabled={!!selectedSetbackType}
-                    />
+                    <Popover open={isComboOpen} onOpenChange={setIsComboOpen}>
+                      <PopoverTrigger asChild>
+                          <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={isComboOpen}
+                              className="col-span-3 justify-between"
+                          >
+                              {selectedSetbackType || "Select or create a type..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                          <Command>
+                              <CommandInput
+                                  placeholder="Search or add new type..."
+                                  value={newTypeInput}
+                                  onValueChange={setNewTypeInput}
+                              />
+                              <CommandList>
+                                  <CommandEmpty>
+                                      {newTypeInput.trim() ? (
+                                          <CommandItem
+                                              onSelect={() => {
+                                                  const newType = newTypeInput.trim();
+                                                  if (!setbackTypes.includes(newType)) {
+                                                      const newTypes = [...setbackTypes, newType];
+                                                      setSetbackTypes(newTypes);
+                                                      localStorage.setItem(SETBACK_TYPES_KEY, JSON.stringify(newTypes));
+                                                  }
+                                                  setSelectedSetbackType(newType);
+                                                  setIsComboOpen(false);
+                                                  setNewTypeInput('');
+                                              }}
+                                          >
+                                              Create "{newTypeInput}"
+                                          </CommandItem>
+                                      ) : (
+                                          <div className="py-6 text-center text-sm">No type found.</div>
+                                      )}
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                      {setbackTypes.map((type) => (
+                                          <CommandItem
+                                              key={type}
+                                              value={type}
+                                              onSelect={(currentValue) => {
+                                                  const originalType = setbackTypes.find(t => t.toLowerCase() === currentValue);
+                                                  setSelectedSetbackType(selectedSetbackType === originalType ? '' : originalType || '');
+                                                  setIsComboOpen(false);
+                                                  setNewTypeInput('');
+                                              }}
+                                          >
+                                              <Check
+                                                  className={cn(
+                                                      "mr-2 h-4 w-4",
+                                                      selectedSetbackType === type ? "opacity-100" : "opacity-0"
+                                                  )}
+                                              />
+                                              {type}
+                                          </CommandItem>
+                                      ))}
+                                  </CommandGroup>
+                              </CommandList>
+                          </Command>
+                      </PopoverContent>
+                  </Popover>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="reason" className="text-right">
