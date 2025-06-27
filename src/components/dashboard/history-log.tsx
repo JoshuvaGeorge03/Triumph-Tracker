@@ -8,6 +8,7 @@ import { History, Trash2 } from 'lucide-react';
 import { format, formatDistanceStrict } from 'date-fns';
 import type { HistoryEntry } from './triumph-tracker-client';
 import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
 
 interface HistoryLogProps {
   history: HistoryEntry[];
@@ -32,6 +33,9 @@ export default function HistoryLog({ history, onDelete }: HistoryLogProps) {
                 <Card key={entry.id} className="p-4 bg-background/50">
                   <div className="flex justify-between items-start">
                     <div className='flex-1'>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant="secondary">{entry.type}</Badge>
+                      </div>
                       <p className="font-semibold text-base pr-2 break-words">{entry.reason}</p>
                       <p className="text-sm text-muted-foreground mt-1">
                         Streak Duration:{' '}

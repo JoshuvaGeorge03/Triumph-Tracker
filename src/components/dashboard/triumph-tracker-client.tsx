@@ -23,17 +23,26 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export interface HistoryEntry {
   id: number;
   startTime: number;
   endTime: number;
   reason: string;
+  type: string;
 }
 
 const IS_RUNNING_KEY = 'triumph-tracker-is-running';
 const START_TIME_KEY = 'triumph-tracker-start-time';
 const HISTORY_KEY = 'triumph-tracker-history-v2';
+const SETBACK_TYPES_KEY = 'triumph-tracker-setback-types';
 
 export default function TriumphTrackerClient() {
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
@@ -47,20 +56,29 @@ export default function TriumphTrackerClient() {
   const [reason, setReason] = useState('');
   const { toast } = useToast();
 
+  const [setbackTypes, setSetbackTypes] = useState<string[]>(['Stress', 'Tiredness', 'Social Pressure']);
+  const [selectedSetbackType, setSelectedSetbackType] = useState<string>('');
+  const [customSetbackType, setCustomSetbackType] = useState('');
+
   useEffect(() => {
     try {
       const savedIsRunning = localStorage.getItem(IS_RUNNING_KEY) === 'true';
       const savedStartTime = localStorage.getItem(START_TIME_KEY);
       const savedHistory = localStorage.getItem(HISTORY_KEY);
+      const savedTypes = localStorage.getItem(SETBACK_TYPES_KEY);
 
       setIsTimerRunning(savedIsRunning);
       setCurrentStreakStartTime(savedStartTime ? parseInt(savedStartTime, 10) : null);
       setHistory(savedHistory ? JSON.parse(savedHistory) : []);
+      if (savedTypes) {
+        setSetbackTypes(JSON.parse(savedTypes));
+      }
     } catch (error) {
       console.error('Failed to load data from localStorage', error);
       setIsTimerRunning(false);
       setCurrentStreakStartTime(null);
       setHistory([]);
+      setSetbackTypes(['Stress', 'Tiredness', 'Social Pressure']);
     } finally {
       setIsLoaded(true);
     }
@@ -125,13 +143,46 @@ export default function TriumphTrackerClient() {
     });
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setReason('');
+      setSelectedSetbackType('');
+      setCustomSetbackType('');
+    }
+  };
+
+  const handleTypeSelect = (value: string) => {
+    setSelectedSetbackType(value);
+    if (value) {
+      setCustomSetbackType('');
+    }
+  };
+
+  const handleCustomTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCustomSetbackType(e.target.value);
+    if (e.target.value) {
+      setSelectedSetbackType('');
+    }
+  };
+
   const handleRecordSetback = () => {
     if (!currentStreakStartTime) return;
+    const finalSetbackType = customSetbackType.trim() || selectedSetbackType;
+
     if (!reason.trim()) {
       toast({
         variant: 'destructive',
         title: 'Reason Required',
         description: 'Please provide a reason for this setback.',
+      });
+      return;
+    }
+    if (!finalSetbackType) {
+      toast({
+        variant: 'destructive',
+        title: 'Type Required',
+        description: 'Please select or enter a type for this setback.',
       });
       return;
     }
@@ -142,14 +193,24 @@ export default function TriumphTrackerClient() {
       startTime: currentStreakStartTime,
       endTime: now,
       reason: reason.trim(),
+      type: finalSetbackType,
     };
     const newHistory = [newHistoryEntry, ...history];
+
+    const updatedTypes = [...setbackTypes];
+    if (customSetbackType.trim() && !setbackTypes.includes(customSetbackType.trim())) {
+        updatedTypes.push(customSetbackType.trim());
+        setSetbackTypes(updatedTypes);
+        localStorage.setItem(SETBACK_TYPES_KEY, JSON.stringify(updatedTypes));
+    }
 
     setHistory(newHistory);
     setIsTimerRunning(false);
     setCurrentStreakStartTime(null);
-    setReason('');
     setIsDialogOpen(false);
+    setReason('');
+    setSelectedSetbackType('');
+    setCustomSetbackType('');
 
     localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
     localStorage.setItem(IS_RUNNING_KEY, 'false');
@@ -194,7 +255,7 @@ export default function TriumphTrackerClient() {
               Start Timer
             </Button>
           ) : (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
               <DialogTrigger asChild>
                 <Button
                   size="lg"
@@ -209,10 +270,44 @@ export default function TriumphTrackerClient() {
                 <DialogHeader>
                   <DialogTitle>Record a Setback</DialogTitle>
                   <DialogDescription>
-                    It's okay. Acknowledging a setback is a step towards progress. What was the reason?
+                    It's okay. Acknowledging a setback is a step towards progress. What happened?
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="type" className="text-right">
+                        Type
+                    </Label>
+                    <Select
+                        onValueChange={handleTypeSelect}
+                        value={selectedSetbackType}
+                        disabled={!!customSetbackType}
+                    >
+                        <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select a type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {setbackTypes.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                    {type}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                  </div>
+                   <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="custom-type" className="text-right">
+                        Other
+                    </Label>
+                    <Input
+                        id="custom-type"
+                        value={customSetbackType}
+                        onChange={handleCustomTypeChange}
+                        className="col-span-3"
+                        placeholder="Or add a new type"
+                        disabled={!!selectedSetbackType}
+                    />
+                  </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="reason" className="text-right">
                       Reason
