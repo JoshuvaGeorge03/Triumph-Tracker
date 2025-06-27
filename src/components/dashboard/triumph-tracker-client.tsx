@@ -252,6 +252,15 @@ export default function TriumphTrackerClient() {
     setIsComboOpen(false);
     setNewTypeInput('');
   };
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (newTypeInput.trim()) {
+        handleCreateOrSelectType();
+      }
+    }
+  };
 
 
   const handleDeleteHistoryEntry = (id: number) => {
@@ -319,8 +328,8 @@ export default function TriumphTrackerClient() {
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="type" className="text-right">
+                  <div className="grid grid-cols-1 gap-y-2 sm:grid-cols-4 sm:items-center sm:gap-x-4">
+                    <Label htmlFor="type" className="sm:text-right">
                         Type
                     </Label>
                     <Popover open={isComboOpen} onOpenChange={setIsComboOpen}>
@@ -341,6 +350,7 @@ export default function TriumphTrackerClient() {
                                   placeholder="Search or add new type..."
                                   value={newTypeInput}
                                   onValueChange={setNewTypeInput}
+                                  onKeyDown={handleKeyDown}
                               />
                               <CommandList>
                                   <CommandEmpty>
@@ -396,8 +406,8 @@ export default function TriumphTrackerClient() {
                       </PopoverContent>
                   </Popover>
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="reason" className="text-right">
+                  <div className="grid grid-cols-1 gap-y-2 sm:grid-cols-4 sm:items-center sm:gap-x-4">
+                    <Label htmlFor="reason" className="sm:text-right">
                       Reason
                     </Label>
                     <Input
