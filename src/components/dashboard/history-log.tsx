@@ -4,60 +4,70 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { History } from 'lucide-react';
+import { History, Trash2 } from 'lucide-react';
 import { format, formatDistanceStrict } from 'date-fns';
+import type { HistoryEntry } from './triumph-tracker-client';
+import { Button } from '../ui/button';
 
 interface HistoryLogProps {
-  history: number[];
+  history: HistoryEntry[];
+  onDelete: (id: number) => void;
 }
 
-export default function HistoryLog({ history }: HistoryLogProps) {
-  const reversedHistory = [...history].reverse();
-
+export default function HistoryLog({ history, onDelete }: HistoryLogProps) {
   return (
     <Card className="shadow-lg">
       <CardHeader>
         <div className="flex items-center gap-2">
           <History className="h-6 w-6 text-primary" />
-          <CardTitle>Setback History</CardTitle>
+          <CardTitle>Streak History</CardTitle>
         </div>
-        <CardDescription>A log of your recorded setbacks.</CardDescription>
+        <CardDescription>A log of your past streaks.</CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-72">
-          {reversedHistory.length > 0 ? (
+        <ScrollArea className="h-96">
+          {history.length > 0 ? (
             <div className="space-y-4 pr-4">
-              {reversedHistory.map((timestamp, index) => {
-                const previousTimestamp = reversedHistory[index + 1] || null;
-                const duration = previousTimestamp
-                  ? formatDistanceStrict(timestamp, previousTimestamp, {
-                      addSuffix: false,
-                    })
-                  : null;
-
-                return (
-                  <React.Fragment key={timestamp}>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">
-                        {format(new Date(timestamp), "PPP 'at' p")}
-                      </span>
-                      {duration ? (
-                        <span className="font-medium text-primary bg-primary/10 px-2 py-1 rounded-md">
-                          Streak: {duration}
+              {history.map((entry) => (
+                <Card key={entry.id} className="p-4 bg-background/50">
+                  <div className="flex justify-between items-start">
+                    <div className='flex-1'>
+                      <p className="font-semibold text-base pr-2 break-words">{entry.reason}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Streak Duration:{' '}
+                        <span className="font-medium text-primary">
+                          {formatDistanceStrict(entry.endTime, entry.startTime)}
                         </span>
-                      ) : (
-                        <span className="text-xs text-muted-foreground italic">First record</span>
-                      )}
+                      </p>
                     </div>
-                    {index < reversedHistory.length - 1 && <Separator />}
-                  </React.Fragment>
-                );
-              })}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                      onClick={() => onDelete(entry.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">Delete entry</span>
+                    </Button>
+                  </div>
+                  <Separator className="my-3" />
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>
+                      <span className="font-medium">Started:</span>{' '}
+                      {format(new Date(entry.startTime), "PPP 'at' p")}
+                    </p>
+                    <p>
+                      <span className="font-medium">Ended:</span>{' '}
+                      {format(new Date(entry.endTime), "PPP 'at' p")}
+                    </p>
+                  </div>
+                </Card>
+              ))}
             </div>
           ) : (
             <div className="text-center py-10 text-muted-foreground">
-              <p>No setbacks recorded yet.</p>
-              <p className="text-sm">Keep up the great work!</p>
+              <p>No streaks recorded yet.</p>
+              <p className="text-sm">Start the timer to begin your first streak!</p>
             </div>
           )}
         </ScrollArea>

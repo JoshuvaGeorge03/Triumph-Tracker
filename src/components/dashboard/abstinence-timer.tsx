@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Timer } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface AbstinenceTimerProps {
   startTime: number | null;
+  isRunning: boolean;
 }
 
 interface TimeLeft {
@@ -15,8 +17,8 @@ interface TimeLeft {
   seconds: number;
 }
 
-const calculateTimeLeft = (startTime: number | null): TimeLeft => {
-  if (startTime === null) {
+const calculateTimeLeft = (startTime: number | null, isRunning: boolean): TimeLeft => {
+  if (!isRunning || startTime === null) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0 };
   }
   const difference = Date.now() - startTime;
@@ -33,16 +35,21 @@ const calculateTimeLeft = (startTime: number | null): TimeLeft => {
   return { days, hours, minutes, seconds };
 };
 
-export default function AbstinenceTimer({ startTime }: AbstinenceTimerProps) {
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(startTime));
+export default function AbstinenceTimer({ startTime, isRunning }: AbstinenceTimerProps) {
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(startTime, isRunning));
 
   useEffect(() => {
+    if (!isRunning) {
+      setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      return;
+    }
+
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft(startTime));
+      setTimeLeft(calculateTimeLeft(startTime, isRunning));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [startTime]);
+  }, [startTime, isRunning]);
 
   const formatUnit = (value: number) => value.toString().padStart(2, '0');
 
@@ -53,7 +60,10 @@ export default function AbstinenceTimer({ startTime }: AbstinenceTimerProps) {
         <CardTitle className="text-2xl font-semibold">Time of Abstinence</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-center items-end gap-2 sm:gap-4">
+        <div className={cn(
+            "flex justify-center items-end gap-2 sm:gap-4 transition-opacity",
+            !isRunning && "opacity-50"
+          )}>
           {timeLeft.days > 0 && (
             <div className="flex flex-col items-center">
               <span className="text-5xl sm:text-7xl font-bold tracking-tighter text-primary">
@@ -77,7 +87,10 @@ export default function AbstinenceTimer({ startTime }: AbstinenceTimerProps) {
           </div>
           <div className="text-5xl sm:text-7xl font-bold pb-1 text-muted-foreground">:</div>
           <div className="flex flex-col items-center">
-            <span className="text-5xl sm:text-7xl font-bold tracking-tighter animate-pulse">
+            <span className={cn(
+                "text-5xl sm:text-7xl font-bold tracking-tighter",
+                 isRunning && "animate-pulse"
+              )}>
               {formatUnit(timeLeft.seconds)}
             </span>
             <span className="text-sm text-muted-foreground">SECONDS</span>
