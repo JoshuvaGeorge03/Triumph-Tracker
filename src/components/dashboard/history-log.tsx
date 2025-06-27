@@ -9,19 +9,58 @@ import { format, formatDistanceStrict } from 'date-fns';
 import type { HistoryEntry } from './triumph-tracker-client';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 interface HistoryLogProps {
   history: HistoryEntry[];
   onDelete: (id: number) => void;
+  onClearAll: () => void;
 }
 
-export default function HistoryLog({ history, onDelete }: HistoryLogProps) {
+export default function HistoryLog({ history, onDelete, onClearAll }: HistoryLogProps) {
   return (
     <Card className="shadow-lg">
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <History className="h-6 w-6 text-primary" />
-          <CardTitle>Streak History</CardTitle>
+        <div className="flex items-center justify-between">
+           <div className="flex items-center gap-2">
+            <History className="h-6 w-6 text-primary" />
+            <CardTitle>Streak History</CardTitle>
+          </div>
+          {history.length > 0 && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Clear All
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete all your streak history.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onClearAll} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
         <CardDescription>A log of your past streaks.</CardDescription>
       </CardHeader>

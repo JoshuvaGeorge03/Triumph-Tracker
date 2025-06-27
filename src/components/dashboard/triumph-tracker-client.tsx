@@ -214,6 +214,17 @@ export default function TriumphTrackerClient() {
     });
   };
 
+  const handleClearAllHistory = () => {
+    setHistory([]);
+    localStorage.removeItem(HISTORY_KEY);
+    localStorage.removeItem(SETBACK_TYPES_KEY);
+    setSetbackTypes(['Stress', 'Tiredness', 'Social Pressure']);
+    toast({
+      title: 'History Cleared',
+      description: 'All your streak history has been deleted.',
+    });
+  };
+
   if (!isLoaded) {
     return <DashboardSkeleton />;
   }
@@ -355,7 +366,7 @@ export default function TriumphTrackerClient() {
           </p>
         </div>
 
-        <HistoryLog history={history} onDelete={handleDeleteHistoryEntry} />
+        <HistoryLog history={history} onDelete={handleDeleteHistoryEntry} onClearAll={handleClearAllHistory} />
       </div>
     </div>
   );
