@@ -9,7 +9,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 import Link, { type LinkProps } from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -24,6 +24,13 @@ const routes = [
 
 export default function MobileNav() {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    setOpen(false);
+    router.replace('/login');
+  };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -36,14 +43,14 @@ export default function MobileNav() {
           <span className="sr-only">Toggle Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="pr-0">
+      <SheetContent side="left" className="pr-0 flex flex-col">
         <SheetHeader>
           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
         </SheetHeader>
         <div className="mb-8 pl-6 flex justify-between items-center">
           <Logo />
         </div>
-        <div className="flex flex-col gap-4 pl-6">
+        <div className="flex flex-col gap-y-2 px-4">
           {routes.map((route) => (
             <MobileLink
               key={route.href}
@@ -54,9 +61,15 @@ export default function MobileNav() {
             </MobileLink>
           ))}
         </div>
-        <div className="absolute bottom-4 left-6 flex items-center gap-2">
-          <InstallPWAButton />
-          <ThemeToggle />
+        <div className="mt-auto p-4 space-y-4 border-t">
+            <Button variant="outline" className="w-full" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+            </Button>
+            <div className="flex items-center justify-center gap-2">
+                <InstallPWAButton />
+                <ThemeToggle />
+            </div>
         </div>
       </SheetContent>
     </Sheet>
@@ -87,8 +100,8 @@ function MobileLink({
         onOpenChange?.(false);
       }}
       className={cn(
-        'transition-colors hover:text-foreground',
-        pathname === href ? 'text-foreground font-semibold' : 'text-muted-foreground',
+        'text-base font-medium transition-colors hover:text-foreground p-2 rounded-md',
+        pathname === href ? 'bg-secondary text-foreground' : 'text-muted-foreground',
         className
       )}
       {...props}

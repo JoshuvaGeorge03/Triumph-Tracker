@@ -25,9 +25,9 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format, formatDistanceStrict, getYear, getMonth } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { HistoryEntry } from '../dashboard/triumph-tracker-client';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, BarChart } from '@/components/ui/chart';
 
 const HISTORY_KEY = 'triumph-tracker-history-v2';
 
@@ -102,7 +102,7 @@ export default function ReportsClient() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-wrap flex-col sm:flex-row gap-4">
             <Select value={selectedYear || ''} onValueChange={setSelectedYear}>
               <SelectTrigger className="w-full sm:w-[180px]">
                 <SelectValue placeholder="Select Year" />
@@ -175,7 +175,7 @@ export default function ReportsClient() {
                       <TableBody>
                         {filteredHistory.map(entry => (
                           <TableRow key={entry.id}>
-                            <TableCell className="font-medium break-words max-w-xs">{entry.reason}</TableCell>
+                            <TableCell className="font-medium break-words max-w-[20ch] sm:max-w-md">{entry.reason}</TableCell>
                             <TableCell>
                               <Badge variant="secondary">{entry.type}</Badge>
                             </TableCell>
