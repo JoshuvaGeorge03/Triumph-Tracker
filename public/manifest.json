@@ -1,0 +1,17 @@
+{
+  "name": "Triumph Tracker",
+  "short_name": "Triumph",
+  "description": "Track and triumph over your habits.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E9F5E9",
+  "theme_color": "#76A976",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

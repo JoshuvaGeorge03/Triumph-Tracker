@@ -1,5 +1,6 @@
 import Logo from './logo';
 import MainNav from './main-nav';
+import MobileNav from './mobile-nav';
 
 export default function Header() {
   return (
@@ -7,6 +8,7 @@ export default function Header() {
       <div className="container mx-auto flex justify-between items-center">
         <Logo />
         <MainNav />
+        <MobileNav />
       </div>
     </header>
   );
