@@ -253,16 +253,6 @@ export default function TriumphTrackerClient() {
     setNewTypeInput('');
   };
   
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      if (newTypeInput.trim()) {
-        handleCreateOrSelectType();
-      }
-    }
-  };
-
-
   const handleDeleteHistoryEntry = (id: number) => {
     const newHistory = history.filter((entry) => entry.id !== id);
     setHistory(newHistory);
@@ -338,7 +328,7 @@ export default function TriumphTrackerClient() {
                               variant="outline"
                               role="combobox"
                               aria-expanded={isComboOpen}
-                              className="col-span-3 justify-between"
+                              className="w-full col-span-1 sm:col-span-3 justify-between"
                           >
                               {selectedSetbackType || "Select or create a type..."}
                               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -350,56 +340,54 @@ export default function TriumphTrackerClient() {
                                   placeholder="Search or add new type..."
                                   value={newTypeInput}
                                   onValueChange={setNewTypeInput}
-                                  onKeyDown={handleKeyDown}
                               />
                               <CommandList>
                                   <CommandEmpty>
-                                      {newTypeInput.trim() ? (
-                                          <CommandItem
-                                            onSelect={handleCreateOrSelectType}
-                                          >
-                                              Create "{newTypeInput}"
-                                          </CommandItem>
-                                      ) : (
-                                          <div className="py-6 text-center text-sm">No type found.</div>
-                                      )}
+                                    <div className="py-6 text-center text-sm">No type found.</div>
                                   </CommandEmpty>
                                   <CommandGroup>
-                                      {setbackTypes.map((type) => (
+                                    {newTypeInput.trim() && !setbackTypes.some(t => t.toLowerCase() === newTypeInput.trim().toLowerCase()) && (
                                         <CommandItem
-                                          key={type}
-                                          value={type}
-                                          onSelect={() => {
-                                            setSelectedSetbackType(selectedSetbackType === type ? '' : type);
-                                            setIsComboOpen(false);
-                                            setNewTypeInput('');
-                                          }}
-                                          className="group/item flex items-center justify-between"
+                                          onSelect={handleCreateOrSelectType}
                                         >
-                                          <div className="flex items-center">
-                                            <Check
-                                              className={cn(
-                                                "mr-2 h-4 w-4",
-                                                selectedSetbackType === type ? "opacity-100" : "opacity-0"
-                                              )}
-                                            />
-                                            <span>{type}</span>
-                                          </div>
-                                          {!DEFAULT_SETBACK_TYPES.includes(type) && (
-                                            <button
-                                              className="p-1 opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive"
-                                              onClick={(e) => {
-                                                e.preventDefault();
-                                                e.stopPropagation();
-                                                handleDeleteSetbackType(type);
-                                              }}
-                                            >
-                                              <Trash2 className="h-4 w-4" />
-                                              <span className="sr-only">Delete type</span>
-                                            </button>
-                                          )}
+                                            Create "{newTypeInput.trim()}"
                                         </CommandItem>
-                                      ))}
+                                    )}
+                                    {setbackTypes.map((type) => (
+                                    <CommandItem
+                                      key={type}
+                                      value={type}
+                                      onSelect={() => {
+                                        setSelectedSetbackType(selectedSetbackType === type ? '' : type);
+                                        setIsComboOpen(false);
+                                        setNewTypeInput('');
+                                      }}
+                                      className="group/item flex items-center justify-between"
+                                    >
+                                      <div className="flex items-center">
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            selectedSetbackType === type ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        <span>{type}</span>
+                                      </div>
+                                      {!DEFAULT_SETBACK_TYPES.includes(type) && (
+                                        <button
+                                          className="p-1 opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleDeleteSetbackType(type);
+                                          }}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                          <span className="sr-only">Delete type</span>
+                                        </button>
+                                      )}
+                                    </CommandItem>
+                                    ))}
                                   </CommandGroup>
                               </CommandList>
                           </Command>
@@ -414,7 +402,7 @@ export default function TriumphTrackerClient() {
                       id="reason"
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
-                      className="col-span-3"
+                      className="w-full col-span-1 sm:col-span-3"
                       placeholder="e.g., Felt stressed"
                     />
                   </div>
