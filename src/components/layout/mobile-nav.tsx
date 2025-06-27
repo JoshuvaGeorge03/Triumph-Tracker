@@ -8,6 +8,7 @@ import Link, { type LinkProps } from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import Logo from './logo';
+import { ThemeToggle } from './theme-toggle';
 
 const routes = [
   { href: '/', label: 'Dashboard' },
@@ -29,7 +30,7 @@ export default function MobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="pr-0">
-        <div className="mb-8 pl-6">
+        <div className="mb-8 pl-6 flex justify-between items-center">
           <Logo />
         </div>
         <div className="flex flex-col gap-4 pl-6">
@@ -42,6 +43,9 @@ export default function MobileNav() {
               {route.label}
             </MobileLink>
           ))}
+        </div>
+        <div className="absolute bottom-4 left-6">
+           <ThemeToggle />
         </div>
       </SheetContent>
     </Sheet>
