@@ -1,7 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 import Link, { type LinkProps } from 'next/link';
@@ -30,6 +36,9 @@ export default function MobileNav() {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="pr-0">
+        <SheetHeader>
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+        </SheetHeader>
         <div className="mb-8 pl-6 flex justify-between items-center">
           <Logo />
         </div>
@@ -45,7 +54,7 @@ export default function MobileNav() {
           ))}
         </div>
         <div className="absolute bottom-4 left-6">
-           <ThemeToggle />
+          <ThemeToggle />
         </div>
       </SheetContent>
     </Sheet>
