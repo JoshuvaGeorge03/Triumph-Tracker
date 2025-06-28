@@ -29,7 +29,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     // Simple hardcoded authentication
-    if (username === 'joshuva' && password === 'janice') {
+    if (username === process.env.NEXT_PUBLIC_USER_NAME && password === process.env.NEXT_PUBLIC_PASSWORD) {
       toast({
         title: 'Login Successful',
         description: 'Welcome back!',

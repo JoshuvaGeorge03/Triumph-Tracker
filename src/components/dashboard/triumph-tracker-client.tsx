@@ -1,16 +1,16 @@
 // src/components/dashboard/triumph-tracker-client.tsx
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { getMotivationalMessageAction } from '@/app/actions';
-import type { MotivationalMessageOutput } from '@/ai/flows/generate-motivational-message';
-import AbstinenceTimer from './abstinence-timer';
-import HistoryLog from './history-log';
-import MotivationalMessage from './motivational-message';
-import DashboardSkeleton from './dashboard-skeleton';
-import { Play, StopCircle, Check, ChevronsUpDown, Trash2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { getMotivationalMessageAction } from "@/app/actions";
+import type { MotivationalMessageOutput } from "@/ai/flows/generate-motivational-message";
+import AbstinenceTimer from "./abstinence-timer";
+import HistoryLog from "./history-log";
+import MotivationalMessage from "./motivational-message";
+import DashboardSkeleton from "./dashboard-skeleton";
+import { Play, StopCircle, Check, ChevronsUpDown, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +20,9 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Command,
   CommandEmpty,
@@ -30,9 +30,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export interface HistoryEntry {
   id: number;
@@ -42,45 +46,51 @@ export interface HistoryEntry {
   type: string;
 }
 
-const IS_RUNNING_KEY = 'triumph-tracker-is-running';
-const START_TIME_KEY = 'triumph-tracker-start-time';
-const HISTORY_KEY = 'triumph-tracker-history-v2';
-const SETBACK_TYPES_KEY = 'triumph-tracker-setback-types';
-const DEFAULT_SETBACK_TYPES = ['Stress', 'Tiredness', 'Social Pressure'];
+const IS_RUNNING_KEY = "triumph-tracker-is-running";
+const START_TIME_KEY = "triumph-tracker-start-time";
+const HISTORY_KEY = "triumph-tracker-history-v2";
+const SETBACK_TYPES_KEY = "triumph-tracker-setback-types";
+const DEFAULT_SETBACK_TYPES = ["Stress", "Tiredness", "Social Pressure"];
 
 export default function TriumphTrackerClient() {
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
-  const [currentStreakStartTime, setCurrentStreakStartTime] = useState<number | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [currentStreakStartTime, setCurrentStreakStartTime] = useState<
+    number | null
+  >(null);
+  const [history, setHistory] = useState<HistoryEntryu[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [motivationalMessage, setMotivationalMessage] =
     useState<MotivationalMessageOutput | null>(null);
   const [isMessageLoading, setIsMessageLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
   const { toast } = useToast();
 
-  const [setbackTypes, setSetbackTypes] = useState<string[]>(DEFAULT_SETBACK_TYPES);
-  const [selectedSetbackType, setSelectedSetbackType] = useState<string>('');
-  
+  const [setbackTypes, setSetbackTypes] = useState<string[]>(
+    DEFAULT_SETBACK_TYPES
+  );
+  const [selectedSetbackType, setSelectedSetbackType] = useState<string>("");
+
   const [isComboOpen, setIsComboOpen] = useState(false);
   const [newTypeInput, setNewTypeInput] = useState("");
 
   useEffect(() => {
     try {
-      const savedIsRunning = localStorage.getItem(IS_RUNNING_KEY) === 'true';
+      const savedIsRunning = localStorage.getItem(IS_RUNNING_KEY) === "true";
       const savedStartTime = localStorage.getItem(START_TIME_KEY);
       const savedHistory = localStorage.getItem(HISTORY_KEY);
       const savedTypes = localStorage.getItem(SETBACK_TYPES_KEY);
 
       setIsTimerRunning(savedIsRunning);
-      setCurrentStreakStartTime(savedStartTime ? parseInt(savedStartTime, 10) : null);
+      setCurrentStreakStartTime(
+        savedStartTime ? parseInt(savedStartTime, 10) : null
+      );
       setHistory(savedHistory ? JSON.parse(savedHistory) : []);
       if (savedTypes) {
         setSetbackTypes(JSON.parse(savedTypes));
       }
     } catch (error) {
-      console.error('Failed to load data from localStorage', error);
+      console.error("Failed to load data from localStorage", error);
       setIsTimerRunning(false);
       setCurrentStreakStartTime(null);
       setHistory([]);
@@ -111,16 +121,20 @@ export default function TriumphTrackerClient() {
       successRate = 1;
     }
 
-    let overallTrend = 'stable';
+    let overallTrend = "stable";
     if (intervals.length >= 2) {
-        const midPoint = Math.ceil(intervals.length / 2);
-        const recentStreaks = intervals.slice(0, midPoint);
-        const olderStreaks = intervals.slice(midPoint);
-        const avgRecent = recentStreaks.reduce((a, b) => a + b, 0) / recentStreaks.length;
-        const avgOlder = olderStreaks.length > 0 ? olderStreaks.reduce((a, b) => a + b, 0) / olderStreaks.length : avgRecent;
+      const midPoint = Math.ceil(intervals.length / 2);
+      const recentStreaks = intervals.slice(0, midPoint);
+      const olderStreaks = intervals.slice(midPoint);
+      const avgRecent =
+        recentStreaks.reduce((a, b) => a + b, 0) / recentStreaks.length;
+      const avgOlder =
+        olderStreaks.length > 0
+          ? olderStreaks.reduce((a, b) => a + b, 0) / olderStreaks.length
+          : avgRecent;
 
-        if (avgRecent > avgOlder * 1.1) overallTrend = 'improving';
-        else if (avgRecent < avgOlder * 0.9) overallTrend = 'worsening';
+      if (avgRecent > avgOlder * 1.1) overallTrend = "improving";
+      else if (avgRecent < avgOlder * 0.9) overallTrend = "worsening";
     }
 
     const message = await getMotivationalMessageAction({
@@ -142,19 +156,19 @@ export default function TriumphTrackerClient() {
     setCurrentStreakStartTime(now);
     setIsTimerRunning(true);
     localStorage.setItem(START_TIME_KEY, now.toString());
-    localStorage.setItem(IS_RUNNING_KEY, 'true');
+    localStorage.setItem(IS_RUNNING_KEY, "true");
     toast({
-      title: 'Timer Started',
-      description: 'A new streak begins. You got this!',
+      title: "Timer Started",
+      description: "A new streak begins. You got this!",
     });
   };
 
   const handleDialogOpenChange = (open: boolean) => {
     setIsDialogOpen(open);
     if (!open) {
-      setReason('');
-      setSelectedSetbackType('');
-      setNewTypeInput('');
+      setReason("");
+      setSelectedSetbackType("");
+      setNewTypeInput("");
     }
   };
 
@@ -163,17 +177,17 @@ export default function TriumphTrackerClient() {
 
     if (!reason.trim()) {
       toast({
-        variant: 'destructive',
-        title: 'Reason Required',
-        description: 'Please provide a reason for this setback.',
+        variant: "destructive",
+        title: "Reason Required",
+        description: "Please provide a reason for this setback.",
       });
       return;
     }
     if (!selectedSetbackType) {
       toast({
-        variant: 'destructive',
-        title: 'Type Required',
-        description: 'Please select or create a type for this setback.',
+        variant: "destructive",
+        title: "Type Required",
+        description: "Please select or create a type for this setback.",
       });
       return;
     }
@@ -191,25 +205,26 @@ export default function TriumphTrackerClient() {
     setHistory(newHistory);
     setIsTimerRunning(false);
     setCurrentStreakStartTime(null);
-    handleDialogOpenChange(false)
+    handleDialogOpenChange(false);
 
     localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
-    localStorage.setItem(IS_RUNNING_KEY, 'false');
+    localStorage.setItem(IS_RUNNING_KEY, "false");
     localStorage.removeItem(START_TIME_KEY);
 
     toast({
-      title: 'Setback Recorded',
-      description: "The timer has been stopped. It's okay, a new chapter begins now.",
+      title: "Setback Recorded",
+      description:
+        "The timer has been stopped. It's okay, a new chapter begins now.",
     });
 
     fetchMotivationalMessage();
   };
-  
+
   const handleDeleteSetbackType = (typeToDelete: string) => {
     if (DEFAULT_SETBACK_TYPES.includes(typeToDelete)) {
       toast({
-        variant: 'destructive',
-        title: 'Cannot Delete Default Type',
+        variant: "destructive",
+        title: "Cannot Delete Default Type",
         description: `"${typeToDelete}" is a default type and cannot be deleted.`,
       });
       return;
@@ -220,11 +235,11 @@ export default function TriumphTrackerClient() {
     localStorage.setItem(SETBACK_TYPES_KEY, JSON.stringify(newTypes));
 
     if (selectedSetbackType === typeToDelete) {
-      setSelectedSetbackType('');
+      setSelectedSetbackType("");
     }
 
     toast({
-      title: 'Type Deleted',
+      title: "Type Deleted",
       description: `The type "${typeToDelete}" has been removed.`,
     });
   };
@@ -243,23 +258,23 @@ export default function TriumphTrackerClient() {
       setSetbackTypes(newTypes);
       localStorage.setItem(SETBACK_TYPES_KEY, JSON.stringify(newTypes));
       toast({
-        title: 'Type Added',
+        title: "Type Added",
         description: `Successfully created the "${typeToSelect}" type.`,
       });
     }
 
     setSelectedSetbackType(typeToSelect);
     setIsComboOpen(false);
-    setNewTypeInput('');
+    setNewTypeInput("");
   };
-  
+
   const handleDeleteHistoryEntry = (id: number) => {
     const newHistory = history.filter((entry) => entry.id !== id);
     setHistory(newHistory);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(newHistory));
     toast({
-      title: 'Entry Deleted',
-      description: 'The history entry has been removed.',
+      title: "Entry Deleted",
+      description: "The history entry has been removed.",
     });
   };
 
@@ -272,12 +287,12 @@ export default function TriumphTrackerClient() {
       setSetbackTypes(DEFAULT_SETBACK_TYPES);
     }
     toast({
-      title: 'History Cleared',
-      description: 'All your streak history has been deleted.',
+      title: "History Cleared",
+      description: "All your streak history has been deleted.",
     });
   };
 
-
+  console.log("is it happening");
   if (!isLoaded) {
     return <DashboardSkeleton />;
   }
@@ -285,9 +300,15 @@ export default function TriumphTrackerClient() {
   return (
     <div className="container mx-auto max-w-2xl">
       <div className="grid gap-8">
-        <AbstinenceTimer startTime={currentStreakStartTime} isRunning={isTimerRunning} />
-        <MotivationalMessage message={motivationalMessage} isLoading={isMessageLoading} />
-        
+        <AbstinenceTimer
+          startTime={currentStreakStartTime}
+          isRunning={isTimerRunning}
+        />
+        <MotivationalMessage
+          message={motivationalMessage}
+          isLoading={isMessageLoading}
+        />
+
         <div className="text-center">
           {!isTimerRunning ? (
             <Button
@@ -314,85 +335,106 @@ export default function TriumphTrackerClient() {
                 <DialogHeader>
                   <DialogTitle>Record a Setback</DialogTitle>
                   <DialogDescription>
-                    It's okay. Acknowledging a setback is a step towards progress. What happened?
+                    It's okay. Acknowledging a setback is a step towards
+                    progress. What happened?
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-1 gap-y-2 sm:grid-cols-4 sm:items-center sm:gap-x-4">
                     <Label htmlFor="type" className="sm:text-right">
-                        Type
+                      Type
                     </Label>
                     <Popover open={isComboOpen} onOpenChange={setIsComboOpen}>
                       <PopoverTrigger asChild>
-                          <Button
-                              variant="outline"
-                              role="combobox"
-                              aria-expanded={isComboOpen}
-                              className="w-full col-span-1 sm:col-span-3 justify-between"
-                          >
-                              {selectedSetbackType || "Select or create a type..."}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={isComboOpen}
+                          className="w-full col-span-1 sm:col-span-3 justify-between"
+                        >
+                          {selectedSetbackType || "Select or create a type..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                          <Command>
-                              <CommandInput
-                                  placeholder="Search or add new type..."
-                                  value={newTypeInput}
-                                  onValueChange={setNewTypeInput}
-                              />
-                              <CommandList>
-                                  <CommandEmpty>
-                                    <div className="py-6 text-center text-sm">No type found.</div>
-                                  </CommandEmpty>
-                                  <CommandGroup>
-                                    {newTypeInput.trim() && !setbackTypes.some(t => t.toLowerCase() === newTypeInput.trim().toLowerCase()) && (
-                                        <CommandItem
-                                          onSelect={handleCreateOrSelectType}
-                                        >
-                                            Create "{newTypeInput.trim()}"
-                                        </CommandItem>
-                                    )}
-                                    {setbackTypes.map((type) => (
-                                    <CommandItem
-                                      key={type}
-                                      value={type}
-                                      onSelect={() => {
-                                        setSelectedSetbackType(selectedSetbackType === type ? '' : type);
-                                        setIsComboOpen(false);
-                                        setNewTypeInput('');
+                      <PopoverContent className="w-[--radix-popover-trigger-width]:!opacity-100 p-0">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search or add new type..."
+                            value={newTypeInput}
+                            onValueChange={setNewTypeInput}
+                          />
+                          <CommandList>
+                            <CommandEmpty>
+                              <div className="py-6 text-center text-sm">
+                                No type found.
+                              </div>
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {newTypeInput.trim() &&
+                                !setbackTypes.some(
+                                  (t) =>
+                                    t.toLowerCase() ===
+                                    newTypeInput.trim().toLowerCase()
+                                ) && (
+                                  <CommandItem
+                                    onSelect={handleCreateOrSelectType}
+                                    value={newTypeInput}
+                                    data-value={newTypeInput}
+                                    className="!opacity-100 data-[disabled=false]:pointer-events-auto data-[highlighted]:bg-accent data-[disabled]:pointer-events-auto"
+                                    disabled={false}
+                                  >
+                                    <div
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleCreateOrSelectType();
                                       }}
-                                      className="group/item flex items-center justify-between"
+                                      className="w-full"
                                     >
-                                      <div className="flex items-center">
-                                        <Check
-                                          className={cn(
-                                            "mr-2 h-4 w-4",
-                                            selectedSetbackType === type ? "opacity-100" : "opacity-0"
-                                          )}
-                                        />
-                                        <span>{type}</span>
-                                      </div>
-                                      {!DEFAULT_SETBACK_TYPES.includes(type) && (
-                                        <button
-                                          className="p-1 opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive"
-                                          onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            handleDeleteSetbackType(type);
-                                          }}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                          <span className="sr-only">Delete type</span>
-                                        </button>
-                                      )}
-                                    </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                              </CommandList>
-                          </Command>
+                                      Create "{newTypeInput.trim()}"
+                                    </div>
+                                  </CommandItem>
+                                )}
+                              {setbackTypes.map((type) => (
+                                <CommandItem
+                                  key={type}
+                                  value={type}
+                                  onSelect={() => {
+                                    setSelectedSetbackType(
+                                      selectedSetbackType === type ? "" : type
+                                    );
+                                    setIsComboOpen(false);
+                                    setNewTypeInput("");
+                                  }}
+                                  className="group/item flex items-center justify-between !opacity-100  data-[disabled=false]:pointer-events-auto data-[highlighted]:bg-accent data-[disabled]:pointer-events-auto"
+                                  data-value={type}
+                                >
+                                  <div className="flex items-center">
+                                    <Check className={cn("mr-2 h-4 w-4")} />
+                                    <span>{type}</span>
+                                  </div>
+                                  {!DEFAULT_SETBACK_TYPES.includes(type) && (
+                                    <button
+                                      className="p-1 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleDeleteSetbackType(type);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                      <span className="sr-only">
+                                        Delete type
+                                      </span>
+                                    </button>
+                                  )}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
                       </PopoverContent>
-                  </Popover>
+                    </Popover>
                   </div>
                   <div className="grid grid-cols-1 gap-y-2 sm:grid-cols-4 sm:items-center sm:gap-x-4">
                     <Label htmlFor="reason" className="sm:text-right">
@@ -409,7 +451,7 @@ export default function TriumphTrackerClient() {
                 </div>
                 <DialogFooter>
                   <DialogClose asChild>
-                     <Button variant="outline">Cancel</Button>
+                    <Button variant="outline">Cancel</Button>
                   </DialogClose>
                   <Button onClick={handleRecordSetback}>Confirm Setback</Button>
                 </DialogFooter>
@@ -417,13 +459,17 @@ export default function TriumphTrackerClient() {
             </Dialog>
           )}
           <p className="text-sm text-muted-foreground mt-2">
-            {isTimerRunning 
+            {isTimerRunning
               ? "Pressing this will stop your timer."
               : "A new journey awaits."}
           </p>
         </div>
 
-        <HistoryLog history={history} onDelete={handleDeleteHistoryEntry} onClearAll={handleClearAllHistory} />
+        <HistoryLog
+          history={history}
+          onDelete={handleDeleteHistoryEntry}
+          onClearAll={handleClearAllHistory}
+        />
       </div>
     </div>
   );
